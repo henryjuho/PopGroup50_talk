@@ -1,0 +1,623 @@
+---
+title: "Insertions and deletions in the great tit genome"
+author: "Henry Barton and Kai Zeng, University of Sheffield"
+date: "PopGroup 50 - 06/01/17"
+output:
+  beamer_presentation: default
+  ioslides_presentation:
+    fig_height: 5
+    fig_width: 9
+  slidy_presentation: default
+---
+<style type="text/css">
+slides > slide:not(.nobackground):after {
+  content: '';
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, dev.args = list(bg = 'transparent'))
+```
+
+```{r, echo=FALSE, warning=FALSE, include=FALSE}
+
+# sfs plot
+
+library('ggplot2')
+library('gridExtra')
+library('dplyr')
+
+# The palette with grey:
+cbPalette <- c("#E69F00", 'tomato 3', 'steel blue', "#999999", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
+```
+
+# Introduction
+
+## Insertions and deletions
+
+- short INDELs: sections of DNA < 50bp that are deleted or inserted in a genome
+
+\  
+
+![indel_diag](indel_diagram.jpg)
+
+## INDELs often overlooked
+
+- Disproportionately occur in repetitive sequence
+- Hard to align
+- Often occur in hotspots
+- 1/8 as frequent as SNPs in humans
+
+\   
+\  
+\  
+\  
+\  
+\  
+
+<div style="position:absolute;bottom:4%;left:5%;width:450px;font-size:11pt;"> (Earl et al., 2014; Montgomery et al., 2013) </div>
+
+## The importance of INDELs in genome evolution
+
+* Influence genome size:
+    * low deletion rate $\rightarrow$ large genomes?
+    * high deletion rate $\rightarrow$ compact genomes?
+* Insertions may be favoured:
+    * biased gene conversion
+    * minimum intron size
+    * polarisation error
+
+\   
+\  
+\  
+\  
+
+<div style="position:absolute;bottom:4%;left:5%;width:900px;font-size:11pt;"> (Leushkin and Bazykin, 2013; Nam and Ellegren, 2012; Ometto et al., 2005; Sun et al., 2012) </div>
+
+## Importance of polarisation error
+
+```{R, echo=FALSE, warning=FALSE}
+# data const
+true_ins = data.frame(c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9), c(8, 4, 3, 2.5, 2, 1.8, 1.6, 1.5, 1.4))
+colnames(true_ins) <- c('freq', 'prop')
+true_ins$var = 'insertions'
+true_ins$group = 'true'
+true_del = data.frame(c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9), c(16, 8, 7, 5, 4, 3.5, 3, 2.9, 2.8))
+colnames(true_del) <- c('freq', 'prop')
+true_del$var = 'deletions'
+true_del$group = 'true'
+
+# insertion error
+error_ins_1 = data.frame(c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9), c(2, 1, 0, 0, 0, 0, 0, 0, 0))
+colnames(error_ins_1) <- c('freq', 'prop')
+error_ins_1$var = 'insertions'
+error_ins_1$group = 'ins_loss'
+error_ins_2 = data.frame(c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9), c(0, 0, 0, 0, 0, 0, 0, 1, 2))
+colnames(error_ins_2) <- c('freq', 'prop')
+error_ins_2$var = 'deletions'
+error_ins_2$group = 'del_gain'
+
+#deletion error
+error_del_1 = data.frame(c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9), c(4, 2, 0, 0, 0, 0, 0, 0, 0))
+colnames(error_del_1) <- c('freq', 'prop')
+error_del_1$var = 'deletions'
+error_del_1$group = 'del_loss'
+error_del_2 = data.frame(c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9), c(0, 0, 0, 0, 0, 0, 0, 2, 4))
+colnames(error_del_2) <- c('freq', 'prop')
+error_del_2$var = 'insertions'
+error_del_2$group = 'ins_gain'
+
+true_indel = rbind(true_del, true_ins, error_ins_1, error_ins_2, error_del_1, error_del_2)
+ggplot(true_indel, aes(x=as.factor(freq), y=prop, fill=group)) + 
+  geom_bar(stat='identity') +
+  facet_wrap(~var) +
+  theme_bw(base_size = 15) +
+  xlab('Frequency of derived allele') + ylab('INDEL count') +
+  scale_fill_manual(values=c('white', 'dark grey', 'white', 'dark grey', 'dark grey'), guide='none')
+
+# del_gain, del_loss, ins_gain, ins_loss, true
+```
+
+<div style="position:absolute;bottom:4%;left:5%;width:900px;font-size:11pt;"> (see Hernandez et al., 2007) </div>
+
+## Importance of polarisation error
+
+```{R, echo=FALSE, warning=FALSE}
+ggplot(true_indel, aes(x=as.factor(freq), y=prop, fill=group)) + 
+  geom_bar(stat='identity') +
+  facet_wrap(~var) +
+  theme_bw(base_size = 15) +
+  xlab('Frequency of derived allele') + ylab('INDEL count') +
+  scale_fill_manual(values=c('white', 'dark grey', 'white', 'steel blue', 'dark grey'), guide='none')
+
+# del_gain, del_loss, ins_gain, ins_loss, true
+```
+
+<div style="position:absolute;bottom:4%;left:5%;width:900px;font-size:11pt;"> (see Hernandez et al., 2007) </div>
+
+## Importance of polarisation error
+
+```{R, echo=FALSE, warning=FALSE}
+ggplot(true_indel, aes(x=as.factor(freq), y=prop, fill=group)) + 
+  geom_bar(stat='identity') +
+  facet_wrap(~var) +
+  theme_bw(base_size = 15) +
+  xlab('Frequency of derived allele') + ylab('INDEL count') +
+  scale_fill_manual(values=c('steel blue', 'dark grey', 'white', 'white', 'dark grey'), guide='none')
+
+# del_gain, del_loss, ins_gain, ins_loss, true
+```
+
+<div style="position:absolute;bottom:4%;left:5%;width:900px;font-size:11pt;"> (see Hernandez et al., 2007) </div>
+
+## Importance of polarisation error
+
+```{R, echo=FALSE, warning=FALSE}
+ggplot(true_indel, aes(x=as.factor(freq), y=prop, fill=group)) + 
+  geom_bar(stat='identity') +
+  facet_wrap(~var) +
+  theme_bw(base_size = 15) +
+  xlab('Frequency of derived allele') + ylab('INDEL count') +
+  scale_fill_manual(values=c('steel blue', 'tomato 3', 'white', 'white', 'dark grey'), guide='none')
+
+# del_gain, del_loss, ins_gain, ins_loss, true
+```
+
+<div style="position:absolute;bottom:4%;left:5%;width:900px;font-size:11pt;"> (see Hernandez et al., 2007) </div>
+
+## Importance of polarisation error
+
+```{R, echo=FALSE, warning=FALSE}
+ggplot(true_indel, aes(x=as.factor(freq), y=prop, fill=group)) + 
+  geom_bar(stat='identity') +
+  facet_wrap(~var) +
+  theme_bw(base_size = 15) +
+  xlab('Frequency of derived allele') + ylab('INDEL count') +
+  scale_fill_manual(values=c('steel blue', 'white', 'tomato 3', 'white', 'dark grey'), guide='none')
+
+# del_gain, del_loss, ins_gain, ins_loss, true
+```
+
+<div style="position:absolute;bottom:4%;left:5%;width:900px;font-size:11pt;"> (see Hernandez et al., 2007) </div>
+
+## Importance of polarisation error
+
+```{R, echo=FALSE, warning=FALSE}
+ggplot(true_indel, aes(x=as.factor(freq), y=prop, fill=group)) + 
+  geom_bar(stat='identity') +
+  facet_wrap(~var) +
+  theme_bw(base_size = 15) +
+  xlab('Frequency of derived allele') + ylab('INDEL count') +
+  scale_fill_manual(values=c('dark grey', 'white', 'dark grey', 'white', 'dark grey'), guide='none')
+
+# del_gain, del_loss, ins_gain, ins_loss, true
+```
+
+<div style="position:absolute;bottom:4%;left:5%;width:900px;font-size:11pt;"> (see Hernandez et al., 2007) </div>
+
+## Aims 
+
+1) Overcome polarisation error using a novel modelling approach
+2) Quanitfy the selective and mutational pressures acting on INDELs in great tits (*Parus major*)
+3) Investigate how these pressures vary in different genomic contexts, ie chromosome length
+
+![tit](tit_2.png)
+
+## Advantages of an avian system
+
+- Highly dynamic recombination landscape
+- Genomes consist of few large macrochromosomes and many small microchromosomes
+
+\  
+\ 
+
+![gt_chroms](c.png)
+
+<div style="position:absolute;bottom:4%;left:5%;width:450px;font-size:11pt;"> (van Oers et al., 2014; Stapley et al., 2008) </div>
+
+# Approach - data
+
+## Sample and pipeline
+
+- 10 european great tit males
+- high coverage (44x)
+- variant calling with GATK
+- multispecies alignment between zebra finch, flycatcher and great tit
+- parsimony based polarisation
+
+
+# Approach - model
+
+## A novel maximum likelihood approach
+
+  * Adapting Glémin et al. (2015) model to INDELs
+  * estimates from the unfolded site frequency spectrum:
+    * insertion rate ($\theta_{i} = 4N_e\mu_{i}$)
+    * deletion rate ($\theta_{d} = 4N_e\mu_{d}$)
+    * insertion selection coefficient ($\gamma_{i} = 4N_es_i$)
+    * deletion selection coefficient ($\gamma_{d} = 4N_es_d$)
+    * deletion bias ($\kappa = \frac{\mu_d}{\mu_i}$)
+  * Controls for demography using neutral SNPs (Eyre-Walker et al., 2006)
+  * Estimates and accounts for polarisation error
+
+
+## Predicts $\theta$ (mutation rate) well
+
+```{R, echo=FALSE, warning=FALSE}
+
+glemin_run3 <- read.delim('/Users/henryjuho/genomics/glemin_model/merged_glemin_outputs.txt')
+glemin_run3$k = glemin_run3$t2 / glemin_run3$t1
+glemin_run3$k_p = glemin_run3$t2_p / glemin_run3$t1_p
+
+f <- function(x) {
+  r <- quantile(x, probs = c(0.05, 0.25, 0.5, 0.75, 0.95))
+  names(r) <- c("ymin", "lower", "middle", "upper", "ymax")
+  r
+}
+
+glemin_run3$error = paste('error = ', as.character(glemin_run3$e1), sep='')
+
+ggplot(glemin_run3, aes(x=as.factor(t1), y=t1_p)) + 
+  stat_summary(fun.data = f, geom="boxplot") +
+  theme_bw(base_size = 10) +
+  facet_wrap(~error, ncol = 3) +
+  labs(x=expression(theta[simulated]), y=expression(theta[predicted])) +
+  ylim(0,1750) +
+  theme(axis.title = element_text(size = 20, face = 'bold'), 
+        axis.text = element_text(size = 15, face = 'bold'),
+        strip.text.x = element_text(size = 13, face = 'bold'))
+```
+
+## Predicts $\gamma$ (selection coefficient) well
+
+```{R, echo=FALSE, warning=FALSE}
+
+ggplot(glemin_run3, aes(x=as.factor(g1), y=g1_p)) + 
+  stat_summary(fun.data = f, geom="boxplot") +
+  theme_bw(base_size = 10) +
+  facet_wrap(~error, ncol = 3) +
+  labs(x=expression(gamma[simulated]), y=expression(gamma[predicted])) +
+  ylim(-70,20) +
+  theme(axis.title = element_text(size = 20, face = 'bold'), 
+        axis.text = element_text(size = 15, face = 'bold'),
+        strip.text.x = element_text(size = 13, face = 'bold')) 
+
+```
+
+## Predicts $\kappa$ (deletion bias) well
+
+```{R, echo=FALSE, warning=FALSE}
+
+glemin_run3$k = as.numeric(glemin_run3$k)
+ggplot(glemin_run3, aes(x=k, y=k_p)) + 
+  stat_summary(fun.data = f, geom="boxplot") +
+  theme_bw(base_size = 10) +
+  facet_wrap(~error, ncol = 3) +
+  labs(x=expression(kappa[simulated]), y=expression(kappa[predicted])) +
+  #xlim(0,3.2) +
+  coord_trans(x = "log10", y = "log10") +
+  theme(axis.title = element_text(size = 20, face = 'bold'), 
+        axis.text = element_text(size = 15, face = 'bold'),
+        strip.text.x = element_text(size = 13, face = 'bold')) 
+
+```
+
+# Regional Results
+
+## Regional variation in purifying selection
+
+```{r, echo=FALSE, warning=FALSE}
+
+snp_sum_stats <- read.delim('/Users/henryjuho/genomics/indel_pi_theta_tajd/gt_comp_snps_stats_10000bs_genomewide.txt')
+indel_sum_stats <- read.delim('/Users/henryjuho/genomics/indel_pi_theta_tajd/gt_indels_stats_10000bs_genomewide.txt')
+
+all_sum_stats = rbind(snp_sum_stats, indel_sum_stats)
+all_sum_stats$bin = as.character(all_sum_stats$bin)
+for(x in 1:length(all_sum_stats$bin)){
+  line = all_sum_stats[x,]
+  if(line$bin == 'CDS'){all_sum_stats[x,]$bin <- 'coding'}
+}
+
+all_sum_stats$bin <- factor(all_sum_stats$bin, levels=c('intergenic', 'intron', 'coding'))
+
+ggplot(all_sum_stats, aes(x=bin, y=tajD, colour=type, alpha=bin))+
+  geom_point(stat='identity', position = position_dodge(width=0.9), size = 3) +
+  geom_errorbar(aes(ymin = tajD_lwr, ymax = tajD_upr), stat = 'identity', position = position_dodge(width=0.9), width=0.2) +
+  theme_bw(base_size = 19) +
+  scale_color_manual(values=cbPalette) +
+  scale_alpha_manual(values=c(1,0,0), guide = 'none') +
+  xlab('')  + ylab("Tajima's D") +
+  theme(legend.title=element_blank(), legend.position=c(0.15, 0.4))
+```
+
+## Regional variation in purifying selection
+
+```{r, echo=FALSE, warning=FALSE}
+
+ggplot(all_sum_stats, aes(x=bin, y=tajD, colour=type, alpha=bin))+
+  geom_point(stat='identity', position = position_dodge(width=0.9), size = 3) +
+  geom_errorbar(aes(ymin = tajD_lwr, ymax = tajD_upr), stat = 'identity', position = position_dodge(width=0.9), width=0.2) +
+  theme_bw(base_size = 19) +
+  scale_color_manual(values=cbPalette) +
+  scale_alpha_manual(values=c(1,1,0), guide = 'none') +
+  xlab('')  + ylab("Tajima's D") +
+  theme(legend.title=element_blank(), legend.position=c(0.15, 0.4))
+```
+
+## Regional variation in purifying selection
+
+```{r, echo=FALSE, warning=FALSE}
+
+ggplot(all_sum_stats, aes(x=bin, y=tajD, colour=type))+
+  geom_point(stat='identity', position = position_dodge(width=0.9), size = 3) +
+  geom_errorbar(aes(ymin = tajD_lwr, ymax = tajD_upr), stat = 'identity', position = position_dodge(width=0.9), width=0.2) +
+  theme_bw(base_size = 19) +
+  scale_color_manual(values=cbPalette) +
+  xlab('')  + ylab("Tajima's D") +
+  theme(legend.title=element_blank(), legend.position=c(0.15, 0.4))
+```
+
+## INDELs deleterious in coding regions
+
+```{R, echo=FALSE, warning=FALSE}
+# data
+allcds_gamma <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_allcds_gammatest.maxL.txt')
+allcds_gamma$test <- 'gamma'
+allcds_kappa <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_allcds_kappatest.maxL.txt')
+allcds_kappa$test <- 'kappa'
+allcds_gamma_ins <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_CDS_gammainstest.maxL.txt')
+allcds_gamma_ins$test <- 'gamma_ins'
+allcds_gamma_del <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_CDS_gammadeltest.maxL.txt')
+allcds_gamma_del$test <- 'gamma_del'
+allcds <- rbind(allcds_gamma, allcds_kappa, allcds_gamma_del, allcds_gamma_ins)
+allcds$region <- 'CDS'
+allcds$indel_theta_site <- allcds$indel_theta / 25325062
+allcds$snp_theta_site <- allcds$snp_theta / 378978373
+
+cds_frame_gamma <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_cds_frameshift.gammatest.maxL.txt')
+cds_frame_gamma$test <- 'gamma'
+cds_frame_kappa <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_cds_frameshift.kappatest.maxL.txt')
+cds_frame_kappa$test <- 'kappa'
+cds_frame_gamma_ins <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_CDSshift_gammainstest.maxL.txt')
+cds_frame_gamma_ins$test <- 'gamma_ins'
+cds_frame_gamma_del <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_CDSshift_gammadeltest.maxL.txt')
+cds_frame_gamma_del$test <- 'gamma_del'
+cds_frame <- rbind(cds_frame_gamma, cds_frame_kappa, cds_frame_gamma_del, cds_frame_gamma_ins)
+cds_frame$region <- 'CDS_shift'
+cds_frame$indel_theta_site <- cds_frame$indel_theta / 25325062
+cds_frame$snp_theta_site <- cds_frame$snp_theta / 378978373
+
+cds_inframe_gamma <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_cds_inframe.gammatest.maxL.txt')
+cds_inframe_gamma$test <- 'gamma'
+cds_inframe_kappa <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_cds_inframe.kappatest.maxL.txt')
+cds_inframe_kappa$test <- 'kappa'
+cds_inframe_gamma_ins <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_CDSinframe_gammainstest.maxL.txt')
+cds_inframe_gamma_ins$test <- 'gamma_ins'
+cds_inframe_gamma_del <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_CDSinframe_gammadeltest.maxL.txt')
+cds_inframe_gamma_del$test <- 'gamma_del'
+cds_inframe <- rbind(cds_inframe_gamma, cds_inframe_kappa, cds_inframe_gamma_del, cds_inframe_gamma_ins)
+cds_inframe$region <- 'CDS_inframe'
+cds_inframe$indel_theta_site <- cds_inframe$indel_theta / 25325062
+cds_inframe$snp_theta_site <- cds_inframe$snp_theta / 378978373
+
+intergenic_gamma <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_intergenic.gammatest.maxL.txt')
+intergenic_gamma$test <- 'gamma'
+intergenic_kappa <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_intergenic.kappatest.maxL.txt')
+intergenic_kappa$test <- 'kappa'
+intergenic_gamma_ins <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_intergenic_gammainstest.maxL.txt')
+intergenic_gamma_ins$test <- 'gamma_ins'
+intergenic_gamma_del <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_intergenic_gammadeltest.maxL.txt')
+intergenic_gamma_del$test <- 'gamma_del'
+intergenic <- rbind(intergenic_gamma, intergenic_kappa, intergenic_gamma_del, intergenic_gamma_ins)
+intergenic$region <- 'intergenic'
+intergenic$indel_theta_site <- intergenic$indel_theta / 378978373
+intergenic$snp_theta_site <- intergenic$snp_theta / 378978373
+
+intronic_gamma <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_introns.gammatest.maxL.txt')
+intronic_gamma$test <- 'gamma'
+intronic_kappa <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_introns.kappatest.maxL.txt')
+intronic_kappa$test <- 'kappa'
+intronic_gamma_ins <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_intron_gammainstest.maxL.txt')
+intronic_gamma_ins$test <- 'gamma_ins'
+intronic_gamma_del <- read.delim('/Users/henryjuho/genomics/glemin_model/gt_indel_intron_gammadeltest.maxL.txt')
+intronic_gamma_del$test <- 'gamma_del'
+intronic <- rbind(intronic_gamma, intronic_kappa, intronic_gamma_del, intronic_gamma_ins)
+intronic$region <- 'intron'
+intronic$indel_theta_site <- intronic$indel_theta / 473574069
+intronic$snp_theta_site <- intronic$snp_theta / 378978373
+
+all_genome <- rbind(allcds, cds_frame, cds_inframe, intronic, intergenic)
+
+long_alg_data = subset(all_genome, algorithm=='nlopt_ln_neldermead')
+long_alg_data$mods = paste(long_alg_data$model, long_alg_data$test, sep='_')
+
+# get sig
+long_alg_data$sig = 'na'
+for(i in 1:length(long_alg_data$model)){
+  if(as.numeric(long_alg_data[i,]$p_value) <= 0.05){
+    long_alg_data[i,]$sig = 'significant'} 
+  else{long_alg_data[i,]$sig = 'non significant'}
+}
+
+# relevel
+long_alg_data$region = as.character(long_alg_data$region)
+for(y in 1:length(long_alg_data$region)){
+  line = long_alg_data[y,]
+  if(line$region == 'CDS'){long_alg_data[y,]$region <- 'all coding'}
+  else if(line$region == 'CDS_shift'){long_alg_data[y,]$region <- 'frame-shift'}
+  else if(line$region == 'CDS_inframe'){long_alg_data[y,]$region <- 'in-frame'}
+}
+
+long_alg_data$region <- factor(long_alg_data$region, levels=c('intergenic', 'intron', 'all coding', 'in-frame', 'frame-shift'))
+
+
+gammains_plot_data <- subset(long_alg_data, mods=='mod1_gamma_ins', select = c(region, insertion_gamma, p_value, sig))
+colnames(gammains_plot_data) <- c('region', 'gamma', 'p_value', 'sig')
+gammains_plot_data$variant = 'insertion'
+gammadel_plot_data <- subset(long_alg_data, mods=='mod1_gamma_del', select = c(region, deletion_gamma, p_value, sig))
+colnames(gammadel_plot_data) <- c('region', 'gamma', 'p_value', 'sig')
+gammadel_plot_data$variant = 'deletion'
+gamma_plot_data <- rbind(gammains_plot_data, gammadel_plot_data)
+
+ggplot(gamma_plot_data, aes(x=region, y=gamma, colour=variant, alpha=region, shape=sig))+
+  geom_point(stat='identity', size=3) +
+  #geom_text(aes(label=signif(p_value, digits=2)),hjust=0.5, vjust=-1.5, size=5)+
+  ylim(-5, 0.5) +
+  theme_bw(base_size = 20) +
+  xlab('') + ylab(expression(gamma))+ 
+  theme(legend.title=element_blank(), legend.position=c(0.2, 0.3), legend.box.just = "left", legend.background=element_blank()) +
+  scale_color_manual(values=c('tomato 3', 'steel blue')) +
+  scale_alpha_manual(values=c(1,0,0,0,0), guide='none')
+
+```
+
+## INDELs deleterious in coding regions
+
+```{R, echo=FALSE, warning=FALSE}
+ggplot(gamma_plot_data, aes(x=region, y=gamma, colour=variant, alpha=region, shape=sig))+
+  geom_point(stat='identity', size=3) +
+  #geom_text(aes(label=signif(p_value, digits=2)),hjust=0.5, vjust=-1.5, size=5)+
+  ylim(-5, 0.5) +
+  theme_bw(base_size = 20) +
+  xlab('') + ylab(expression(gamma))+ 
+  theme(legend.title=element_blank(), legend.position=c(0.2, 0.3), legend.box.just = "left", legend.background=element_blank()) +
+  scale_color_manual(values=c('tomato 3', 'steel blue')) +
+  scale_alpha_manual(values=c(1,1,0,0,0), guide='none')
+```
+
+## INDELs deleterious in coding regions
+
+```{R, echo=FALSE, warning=FALSE}
+ggplot(gamma_plot_data, aes(x=region, y=gamma, colour=variant, alpha=region, shape=sig))+
+  geom_point(stat='identity', size=3) +
+  #geom_text(aes(label=signif(p_value, digits=2)),hjust=0.5, vjust=-1.5, size=5)+
+  ylim(-5, 0.5) +
+  theme_bw(base_size = 20) +
+  xlab('') + ylab(expression(gamma))+ 
+  theme(legend.title=element_blank(), legend.position=c(0.2, 0.3), legend.box.just = "left", legend.background=element_blank()) +
+  scale_color_manual(values=c('tomato 3', 'steel blue')) +
+  scale_alpha_manual(values=c(1,1,1,0,0), guide='none')
+```
+
+## INDELs deleterious in coding regions
+
+```{R, echo=FALSE, warning=FALSE}
+ggplot(gamma_plot_data, aes(x=region, y=gamma, colour=variant, alpha=region, shape=sig))+
+  geom_point(stat='identity', size=3) +
+  #geom_text(aes(label=signif(p_value, digits=2)),hjust=0.5, vjust=-1.5, size=5)+
+  ylim(-5, 0.5) +
+  theme_bw(base_size = 20) +
+  xlab('') + ylab(expression(gamma))+ 
+  theme(legend.title=element_blank(), legend.position=c(0.2, 0.3), legend.box.just = "left", legend.background=element_blank()) +
+  scale_color_manual(values=c('tomato 3', 'steel blue')) +
+  scale_alpha_manual(values=c(1,1,1,1,0), guide='none')
+```
+
+## INDELs deleterious in coding regions
+
+```{R, echo=FALSE, warning=FALSE}
+ggplot(gamma_plot_data, aes(x=region, y=gamma, colour=variant, alpha=region, shape=sig))+
+  geom_point(stat='identity', size=3) +
+  #geom_text(aes(label=signif(p_value, digits=2)),hjust=0.5, vjust=-1.5, size=5)+
+  ylim(-5, 0.5) +
+  theme_bw(base_size = 20) +
+  xlab('') + ylab(expression(gamma))+ 
+  theme(legend.title=element_blank(), legend.position=c(0.2, 0.3), legend.box.just = "left", legend.background=element_blank()) +
+  scale_color_manual(values=c('tomato 3', 'steel blue')) +
+  scale_alpha_manual(values=c(1,1,1,1,1), guide='none')
+```
+
+# Recombination Results
+
+```{R, echo=FALSE, warning=FALSE}
+
+## theta
+
+# theta <- ggplot(subset(long_alg_data, mods=='mod1_kappa'), aes(x=region, y=indel_theta_site))+
+#   geom_point(stat='identity', size=3) +
+#   theme_bw(base_size = 20) +
+#   xlab('') + ylab(expression(theta[INDEL]))
+```
+
+
+
+```{R, echo=FALSE, warning=FALSE}
+## Genome-wide deletion bias
+
+# ggplot(subset(long_alg_data, mods=='mod1_kappa'), aes(x=region, y=indel_kappa))+
+#   geom_point(stat='identity', size=3) +
+#   geom_text(aes(label=signif(p_value, digits=2)),hjust=0.5, vjust=-1.5, size=5)+
+#   ylim(1.38, 2.4) +
+#   theme_bw(base_size = 20) +
+#   xlab('') + ylab(expression(kappa))
+```
+
+## No relationship between $\gamma$ (selection coefficient) and chromosome length
+
+```{R, echo=FALSE, warning=FALSE}
+
+chromosome_order = c('chr2', 'chr1', 'chr3', 'chrZ', 'chr1A', 'chr4', 'chr5', 'chr7', 'chr6',
+                     'chr8', 'chr9', 'chr12', 'chr11', 'chr10', 'chr4A', 'chr13', 'chr14',
+                     'chr20', 'chr15', 'chr18', 'chr17', 'chr19', 'chr21', 'chr24', 'chr23',
+                     'chr26', 'chr28', 'chr27', 'chr22', 'chr25LG1', 'chr25LG2', 'chrLGE22')
+
+chromo_kappas_1<- read.delim('/Users/henryjuho/genomics/glemin_model/merged_ml_data_chromosomal_kapptest.txt', row.names=NULL)
+chromo_kappas_2 <- read.delim('/Users/henryjuho/genomics/glemin_model/chromosomal_anavar_gwidesnp.resulttxt', row.names=NULL)
+
+pol_data <- read.delim('/Users/henryjuho/genomics/glemin_model/indel_pol_chr_summary_gt.txt')
+indel_numbers <- read.delim('/Users/henryjuho/genomics/glemin_model/intergenic_sfs_chr_numbers.txt')
+chromo_pass <- subset(indel_numbers, insertions >= 2000 & deletions >= 2000)
+
+
+chromo_kappas_1$chromosome <- factor(chromo_kappas_1$chromosome, levels=chromosome_order)
+chromo_kappas_2$chromosome <- factor(chromo_kappas_2$chromosome, levels=chromosome_order)
+chromo_kappas_1$run <- 'chr_snp'
+chromo_kappas_2$run <- 'gwide_snp'
+
+chromo_kappas <- rbind(chromo_kappas_1, chromo_kappas_2)
+
+
+chromo_kappas_mod1 <- subset(chromo_kappas, model=='mod1' & algorithm=='nlopt_ln_neldermead' & run=='chr_snp')
+
+del_gamma <- subset(subset(chromo_kappas_mod1, chromosome %in% chromo_pass$chromosome), select = c(chromosome, region, deletion_gamma, run))
+colnames(del_gamma) <- c('chromosome', 'region', 'insertion_gamma', 'run')
+
+ggplot(subset(chromo_kappas_mod1, chromosome %in% chromo_pass$chromosome & region == 'intergenic'), aes(x=chromosome, y=insertion_gamma)) +
+  geom_point(size = 3, aes(colour='insertion')) +
+  geom_point(data=subset(del_gamma, region=='intergenic'), size = 3, aes(colour='deletion')) +
+  theme_bw(base_size = 20) +
+  xlab(expression("Decreasing chromosome size" ~ symbol('\256'))) + ylab(expression(gamma)) +
+  theme(axis.text.x = element_text(angle=90), legend.title=element_blank(), legend.position=c(0.1, 0.8), legend.box.just = "left", legend.background=element_blank()) + 
+  scale_color_manual(values=c('deletion'='tomato 3', 'insertion'='steel blue'))
+
+
+```
+
+## No relationship between $\kappa$ (deletion bias) and chromosome length
+
+```{R, echo=FALSE, warning=FALSE}
+ggplot(subset(chromo_kappas_mod1, chromosome %in% chromo_pass$chromosome & region == 'intergenic'), aes(x=chromosome, y=indel_kappa)) +
+  geom_point(size=3, colour='steel blue') +
+  theme_bw(base_size = 20) +
+  xlab(expression("Decreasing chromosome size" ~ symbol('\256'))) + ylab(expression(kappa)) +
+  theme(axis.text.x = element_text(angle=90), legend.position=c(0.8, 0.1), legend.title=element_blank())
+```
+
+
+## Concluding remarks
+
+* INDELs in intergenic and intronic regions largely neutral
+* Coding INDELs strongly deleterious
+* No evidence for neutral role of deletion rates in chromosome size reduction
+* Interesting in future to include:
+    * divergence data
+    * distribution of fitness effects
+* model packaged in the form of 'anavar'
+
+## Acknowledgements 
+
+  * Kai Zeng
+  * Pádraic Corcoran
+  * Toni Gossmann
